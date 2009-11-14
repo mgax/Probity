@@ -1,2 +1,5 @@
+import optparse
+
 def main():
-    print 'hello probity!'
+    parser = optparse.OptionParser()
+    (options, args) = parser.parse_args()
