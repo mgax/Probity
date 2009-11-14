@@ -12,6 +12,19 @@ def file_sha1(file_path):
             sha1_hash.update(data)
     return sha1_hash.hexdigest()
 
+def item_sha1(item_path, out):
+    if path.isfile(item_path):
+        item_checksum = file_sha1(item_path)
+        item_name = path.basename(item_path)
+        item_line = '%s: %s\n' % (item_name, item_checksum)
+        out(item_line)
+    elif path.isdir(item_path):
+        item_checksum = folder_sha1(item_path, out)
+    else:
+        raise NotImplementedError
+
+    return item_checksum
+
 def folder_sha1(folder_path, out):
     if not callable(out):
         # assume it's a file-like object
@@ -28,14 +41,7 @@ def folder_sha1(folder_path, out):
 
     for item_name in sorted(os.listdir(folder_path)):
         item_path = path.join(folder_path, item_name)
-        if path.isfile(item_path):
-            item_checksum = file_sha1(item_path)
-            item_line = '%s: %s\n' % (item_name, item_checksum)
-            my_out(item_line)
-        elif path.isdir(item_path):
-            item_checksum = folder_sha1(item_path, my_out)
-        else:
-            raise NotImplementedError
+        item_sha1(item_path, my_out)
 
     sha1_digest = sha1_hash.hexdigest()
     out('[end folder "%s": %s]\n' % (folder_name, sha1_digest))
