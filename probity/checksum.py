@@ -1,5 +1,4 @@
 from hashlib import sha1
-from StringIO import StringIO
 import os
 from os import path
 
@@ -13,12 +12,32 @@ def file_sha1(file_path):
             sha1_hash.update(data)
     return sha1_hash.hexdigest()
 
-def folder_sha1(folder_path):
-    out = StringIO()
+def folder_sha1(folder_path, out):
+    if not callable(out):
+        # assume it's a file-like object
+        out = out.write
+
     folder_name = path.basename(folder_path)
-    print>>out, '[begin folder "%s"]' % folder_name
-    for file_name in sorted(os.listdir(folder_path)):
-        file_checksum = file_sha1(path.join(folder_path, file_name))
-        print>>out, '%s:' % file_name, file_checksum
-    print>>out, '[end folder "%s"]' % folder_name
-    return out.getvalue()
+    out('[begin folder "%s"]\n' % folder_name)
+
+    sha1_hash = sha1()
+    def my_out(data):
+        " the magic of lisp :) "
+        out(data)
+        sha1_hash.update(data)
+
+    for item_name in sorted(os.listdir(folder_path)):
+        item_path = path.join(folder_path, item_name)
+        if path.isfile(item_path):
+            item_checksum = file_sha1(item_path)
+            item_line = '%s: %s\n' % (item_name, item_checksum)
+            my_out(item_line)
+        elif path.isdir(item_path):
+            item_checksum = folder_sha1(item_path, my_out)
+        else:
+            raise NotImplementedError
+
+    sha1_digest = sha1_hash.hexdigest()
+    out('[end folder "%s": %s]\n' % (folder_name, sha1_digest))
+
+    return sha1_digest
