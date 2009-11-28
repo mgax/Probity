@@ -8,8 +8,8 @@ setup(
     license="BSD License",
     author="Alex Morega",
     author_email="public@grep.ro",
-    setup_requires=['nose>=0.11'],
     packages=find_packages(),
+    setup_requires=['nose>=0.11'],
     test_suite="nose.collector",
     entry_points={
         'console_scripts': [
