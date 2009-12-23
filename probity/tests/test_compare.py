@@ -53,34 +53,40 @@ shoe: 3441943cc58015d62942d3ff1abffc256a4eda72
 
 def read_to_dict(data, skip_folders=False):
     output = dict()
-    def handle(path, checksum, folder, **kwargs):
-        if folder == 'begin':
-            return
-        if folder == 'end' and skip_folders:
-            return
-        output[path] = checksum
-    reader = compare.FileReader(handlers=[handle])
-    reader.parse_file(StringIO(data))
+
+    for evt in compare.parse_file(StringIO(data)):
+        if evt.folder == 'begin':
+            continue
+
+        if evt.folder == 'end' and skip_folders:
+            continue
+
+        output[evt.path] = evt.checksum
+
     return output
 
 class CompareTest(unittest.TestCase):
     def test_read_to_dict(self):
         output = read_to_dict(left_file_data)
+
         self.assertEqual(output['root'],
                          '3bb2cf1ec8cd7d16c7fab448e6cb5f65786dd018')
+
         self.assertEqual(output['root/bag'],
                          '5b4ed50250e736c39d822e4b987a95cf3b312c66')
+
         self.assertEqual(output['root/bag/book'],
                          '3441943cc58015d62942d3ff1abffc256a4eda72')
 
     def test_compare(self):
         left = read_to_dict(left_file_data, skip_folders=True)
-        comparator = compare.ChecksumComparator(left)
-        right_reader = compare.FileReader([comparator.handle])
-        right_reader.parse_file(StringIO(right_file_data))
-        report = comparator.report()
+
+        right_parser = compare.parse_file(StringIO(right_file_data))
+        report = compare.compare(left, right_parser)
+
         expected_report = {
             'missing': set(['root/bag/umbrella']),
             'extra': set(['root/cellar/banana']),
         }
+
         self.assertEqual(report, expected_report)
