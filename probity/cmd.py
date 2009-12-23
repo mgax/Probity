@@ -2,7 +2,7 @@ import sys
 from os import path
 import optparse
 
-import checksum
+from probity import walk
 
 option_parser = optparse.OptionParser()
 option_parser.add_option("-v", "--verbose",
@@ -14,7 +14,7 @@ def main():
 
     for item in args:
         base_path, root_name = path.split(item)
-        for evt in checksum.walk_item(base_path, root_name):
+        for evt in walk.walk_item(base_path, root_name):
             if options.verbose:
                 sys.stdout.write(evt)
 
