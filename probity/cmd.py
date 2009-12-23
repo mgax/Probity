@@ -13,11 +13,12 @@ def main():
     (options, args) = option_parser.parse_args()
 
     if options.verbose:
-        out = sys.stdout.write
+        handle = sys.stdout.write
     else:
-        out = lambda data: None
+        handle = lambda evt: None
 
     for item in args:
-        item_checksum = checksum.item_sha1(item, out)
+        base_path, root_name = path.split(item)
+        item_checksum = checksum.item_sha1(base_path, root_name, handle)
         if not options.verbose:
-            print '%s: %s' % (path.basename(item), item_checksum)
+            print '%s: %s' % (root_name, item_checksum)

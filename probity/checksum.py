@@ -14,38 +14,71 @@ def file_sha1(file_path):
             sha1_hash.update(data)
     return sha1_hash.hexdigest()
 
-def item_sha1(item_path, out):
+def item_sha1(base_path, current_path, handle):
+    item_path = path.join(base_path, current_path)
     if path.isfile(item_path):
-        item_checksum = file_sha1(item_path)
-        item_name = path.basename(item_path)
-        item_line = '%s: %s\n' % (item_name, item_checksum)
-        out(item_line)
+        checksum = file_sha1(item_path)
+        handle(FileEvent(current_path, checksum))
     elif path.isdir(item_path):
-        item_checksum = folder_sha1(item_path, out)
+        checksum = folder_sha1(base_path, current_path, handle)
     else:
         raise NotImplementedError
 
-    return item_checksum
+    return checksum
 
-def folder_sha1(folder_path, out):
-    if not callable(out):
-        # assume it's a file-like object
-        out = out.write
-
-    folder_name = path.basename(folder_path)
-    out('[begin folder "%s"]\n' % folder_name)
+def folder_sha1(base_path, current_path, handle):
+    folder_path = path.join(base_path, current_path)
+    handle(FolderBeginEvent(current_path))
 
     sha1_hash = sha1()
-    def my_out(data):
-        " the magic of lisp :) "
-        out(data)
-        sha1_hash.update(data)
+    def my_out(evt):
+        handle(evt)
+        sha1_hash.update(str(evt))
 
     for item_name in sorted(os.listdir(folder_path)):
-        item_path = path.join(folder_path, item_name)
-        item_sha1(item_path, my_out)
+        item_sha1(base_path, '%s/%s' % (current_path, item_name), my_out)
 
-    sha1_digest = sha1_hash.hexdigest()
-    out('[end folder "%s": %s]\n' % (folder_name, sha1_digest))
+    checksum = sha1_hash.hexdigest()
+    handle(FolderEndEvent(current_path, checksum))
 
-    return sha1_digest
+    return checksum
+
+class BaseEvent(object):
+    _str = None
+    def __str__(self):
+        if self._str is None:
+            self._str = self._format()
+        return self._str
+
+    def _format(self):
+        raise NotImplementedError
+
+class FileEvent(BaseEvent):
+    folder = None
+    def __init__(self, path, checksum):
+        self.path = path
+        self.checksum = checksum
+        self.name = path.split('/')[-1]
+
+    def _format(self):
+        return '%s: %s\n' % (self.name, self.checksum)
+
+class FolderBeginEvent(BaseEvent):
+    folder = 'begin'
+    checksum = None
+    def __init__(self, path):
+        self.path = path
+        self.name = path.split('/')[-1]
+
+    def _format(self):
+        return '[begin folder "%s"]\n' % self.name
+
+class FolderEndEvent(BaseEvent):
+    folder = 'end'
+    def __init__(self, path, checksum):
+        self.path = path
+        self.checksum = checksum
+        self.name = path.split('/')[-1]
+
+    def _format(self):
+        return '[end folder "%s": %s]\n' % (self.name, self.checksum)
