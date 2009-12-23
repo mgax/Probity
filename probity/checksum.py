@@ -14,34 +14,28 @@ def file_sha1(file_path):
             sha1_hash.update(data)
     return sha1_hash.hexdigest()
 
-def item_sha1(base_path, current_path, handle):
+def walk_item(base_path, current_path):
     item_path = path.join(base_path, current_path)
     if path.isfile(item_path):
-        checksum = file_sha1(item_path)
-        handle(FileEvent(current_path, checksum))
+        return [FileEvent(current_path, file_sha1(item_path))]
     elif path.isdir(item_path):
-        checksum = folder_sha1(base_path, current_path, handle)
+        return walk_folder(base_path, current_path)
     else:
         raise NotImplementedError
 
-    return checksum
-
-def folder_sha1(base_path, current_path, handle):
+def walk_folder(base_path, current_path):
     folder_path = path.join(base_path, current_path)
-    handle(FolderBeginEvent(current_path))
+    yield FolderBeginEvent(current_path)
 
     sha1_hash = sha1()
-    def my_out(evt):
-        handle(evt)
-        sha1_hash.update(str(evt))
-
     for item_name in sorted(os.listdir(folder_path)):
-        item_sha1(base_path, '%s/%s' % (current_path, item_name), my_out)
+        next_path = '%s/%s' % (current_path, item_name)
+        for evt in walk_item(base_path, next_path):
+            sha1_hash.update(str(evt))
+            yield evt
 
     checksum = sha1_hash.hexdigest()
-    handle(FolderEndEvent(current_path, checksum))
-
-    return checksum
+    yield FolderEndEvent(current_path, checksum)
 
 class BaseEvent(object):
     _str = None

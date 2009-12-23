@@ -49,8 +49,10 @@ class ChecksumsTestCase(unittest.TestCase):
                 f.write('asdf' * 10)
 
         out = StringIO()
-        sha1_digest = checksum.folder_sha1(self.tmpdir, 'testf', out.write)
-        self.assertEqual(sha1_digest,
+        for evt in checksum.walk_folder(self.tmpdir, 'testf'):
+            out.write(evt)
+        final_checksum = evt.checksum
+        self.assertEqual(final_checksum,
                          '3cc9b7a4af4e33050e5bbee1739a401f3922aa1f')
         self.assertEqual(out.getvalue(),
                          ('[begin folder "testf"]\n'
@@ -68,8 +70,10 @@ class ChecksumsTestCase(unittest.TestCase):
             f.write('hello probity!')
 
         out = StringIO()
-        sha1_digest = checksum.folder_sha1(self.tmpdir, 'testf', out.write)
-        self.assertEqual(sha1_digest,
+        for evt in checksum.walk_folder(self.tmpdir, 'testf'):
+            out.write(evt)
+        final_checksum = evt.checksum
+        self.assertEqual(final_checksum,
                          '47c14f38141d8fcb6e2209fbe990a7ddc102b2b2')
         self.assertEqual(out.getvalue(),
                          ('[begin folder "testf"]\n'

@@ -12,13 +12,12 @@ option_parser.add_option("-v", "--verbose",
 def main():
     (options, args) = option_parser.parse_args()
 
-    if options.verbose:
-        handle = sys.stdout.write
-    else:
-        handle = lambda evt: None
-
     for item in args:
         base_path, root_name = path.split(item)
-        item_checksum = checksum.item_sha1(base_path, root_name, handle)
+        for evt in checksum.walk_item(base_path, root_name):
+            if options.verbose:
+                sys.stdout.write(evt)
+
         if not options.verbose:
-            print '%s: %s' % (root_name, item_checksum)
+            # `evt` is the final event
+            print '%s: %s' % (root_name, evt.checksum)
