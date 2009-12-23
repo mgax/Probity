@@ -53,8 +53,10 @@ shoe: 3441943cc58015d62942d3ff1abffc256a4eda72
 
 def read_to_dict(data, skip_folders=False):
     output = dict()
-    def handle(path, checksum, is_folder, **kwargs):
-        if skip_folders and is_folder:
+    def handle(path, checksum, folder, **kwargs):
+        if folder == 'begin':
+            return
+        if folder == 'end' and skip_folders:
             return
         output[path] = checksum
     reader = compare.FileReader(handlers=[handle])
