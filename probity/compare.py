@@ -40,3 +40,24 @@ class FileReader(object):
             raise ValueError('Could not parse line: %r' % line)
 
         assert stack == [], "Truncated file"
+
+class ChecksumComparator(object):
+    def __init__(self, reference):
+        self.reference = reference
+        self.reverse_reference = dict((v, k) for k, v in reference.iteritems())
+        self.extra = set()
+
+    def handle(self, path, checksum, is_folder, **kwargs):
+        if is_folder:
+            return
+        try:
+            del self.reverse_reference[checksum]
+        except KeyError:
+            self.extra.add(path)
+
+    def report(self):
+        missing = set(self.reverse_reference.itervalues())
+        return {
+            'missing': missing,
+            'extra': self.extra,
+        }

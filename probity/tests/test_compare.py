@@ -30,6 +30,27 @@ paper: 7c9aacf309179594a7106ad4a819c0e3bf509831
 #   root/box/ball "blue\n"
 #   root/paper "white\n"
 
+right_file_data = """\
+[begin folder "root"]
+[begin folder "cellar"]
+apple: 59ef5096d34485ee0bc7b72136e911c5fb87ce23
+ball: b5e1b2a54a67366c75d25634b1f8e6d6b2b5924b
+banana: b63c46499a17fb8fdbb09b28c5f49d2c9719e08c
+envelope: 7c9aacf309179594a7106ad4a819c0e3bf509831
+[end folder "cellar": 3e8be7a1f5ec2b0836fdb3a276990da9597ee2cc]
+shoe: 3441943cc58015d62942d3ff1abffc256a4eda72
+[end folder "root": 1a0422d04589222a39ae01a962571031ffb0b084]
+"""
+
+# right file structure:
+#   root
+#   root/book "red\n"
+#   root/cellar
+#   root/cellar/ball "blue\n"
+#   root/cellar/banana "yellow\n"
+#   root/cellar/paper "white\n"
+#   root/cellar/apple "green\n"
+
 def read_to_dict(data, skip_folders=False):
     output = dict()
     def handle(path, checksum, is_folder, **kwargs):
@@ -49,3 +70,15 @@ class CompareTest(unittest.TestCase):
                          '5b4ed50250e736c39d822e4b987a95cf3b312c66')
         self.assertEqual(output['root/bag/book'],
                          '3441943cc58015d62942d3ff1abffc256a4eda72')
+
+    def test_compare(self):
+        left = read_to_dict(left_file_data, skip_folders=True)
+        comparator = compare.ChecksumComparator(left)
+        right_reader = compare.FileReader([comparator.handle])
+        right_reader.parse_file(StringIO(right_file_data))
+        report = comparator.report()
+        expected_report = {
+            'missing': set(['root/bag/umbrella']),
+            'extra': set(['root/cellar/banana']),
+        }
+        self.assertEqual(report, expected_report)
