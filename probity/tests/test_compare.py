@@ -90,8 +90,10 @@ class CompareTest(unittest.TestCase):
     def test_compare(self):
         left = read_to_dict(left_file_data, skip_folders=True)
 
-        right_parser = compare.parse_file(StringIO(right_file_data))
-        report = compare.compare(left, right_parser)
+        comparator = compare.Comparator(left)
+        for evt in compare.parse_file(StringIO(right_file_data)):
+            comparator.update(evt)
+        report = comparator.report()
 
         expected_report = {
             'missing': set(['root/bag/umbrella']),

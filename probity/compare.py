@@ -38,21 +38,22 @@ def parse_file(input_lines):
 
     assert stack == [], "Truncated file"
 
-def compare(reference, current_parser):
-    reverse_reference = dict((v, k) for k, v in reference.iteritems())
-    extra = set()
+class Comparator(object):
+    def __init__(self, reference):
+        self.reverse_ref = dict((v, k) for k, v in reference.iteritems())
+        self.extra = set()
 
-    for evt in current_parser:
+    def update(self, evt):
         if evt.folder is not None:
-            continue
+            return
 
         try:
-            del reverse_reference[evt.checksum]
+            del self.reverse_ref[evt.checksum]
         except KeyError:
-            extra.add(evt.path)
+            self.extra.add(evt.path)
 
-    missing = set(reverse_reference.itervalues())
-    return {
-        'missing': missing,
-        'extra': extra,
-    }
+    def report(self):
+        return {
+            'missing': set(self.reverse_ref.itervalues()),
+            'extra': self.extra,
+        }
