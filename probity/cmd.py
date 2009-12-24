@@ -16,7 +16,7 @@ def main():
         base_path, root_name = path.split(item)
         for evt in walk.walk_item(base_path, root_name):
             if options.verbose:
-                sys.stdout.write(evt)
+                sys.stdout.write(str(evt))
 
         if not options.verbose:
             # `evt` is the final event
