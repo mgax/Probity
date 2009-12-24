@@ -73,3 +73,19 @@ class InvokeScriptTestCase(unittest.TestCase):
                               '55322dc65ff9ece08af84199b73000d3a9d80fa0]\n'
                           '[end folder "testf": '
                               '47c14f38141d8fcb6e2209fbe990a7ddc102b2b2]\n'))
+
+    def test_verify(self):
+        with open(path.join(self.tmpdir, 'old.prob'), 'w') as f:
+            f.write('[begin folder "old"]\n'
+                    'file_one: 6e28214b93900151eda8143c5605a5d084ee165c\n'
+                    'file_two: 92f3bd369c2639c30e97d5163d4a8693928c411e\n'
+                    '[end folder "old": '
+                        'e897d8148ce4562021397535ae72f7d3b6752fa1]\n')
+        testf_path = path.join(self.tmpdir, 'testf')
+        old_prob_path = path.join(self.tmpdir, 'old.prob')
+        out, err = invoke_script([testf_path, '--verify=' + old_prob_path])
+        self.assertEqual(err, '')
+        expected_out = ('Missing files:\n'
+                        '  old/file_two: '
+                            '92f3bd369c2639c30e97d5163d4a8693928c411e\n')
+        self.assertTrue(expected_out in out)
