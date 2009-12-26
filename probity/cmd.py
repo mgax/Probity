@@ -9,15 +9,15 @@ option_parser = optparse.OptionParser()
 option_parser.add_option("-v", "--verbose",
                          action="store_true", dest="verbose", default=False,
                          help="print hashes for all nested folders and files")
-option_parser.add_option("--verify",
-                         action="store", dest="verify_path",
-                         help="verify against old probity output")
+option_parser.add_option("-r", "--reference",
+                         action="store", dest="reference_path",
+                         help="verify against previous report")
 
 def main():
     (options, args) = option_parser.parse_args()
 
-    if options.verify_path is not None:
-        reference = read_checksum_file(options.verify_path)
+    if options.reference_path is not None:
+        reference = read_checksum_file(options.reference_path)
         comparator = compare.Comparator(reference)
     else:
         comparator = None

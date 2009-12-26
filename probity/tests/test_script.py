@@ -83,7 +83,7 @@ class InvokeScriptTestCase(unittest.TestCase):
                         'e897d8148ce4562021397535ae72f7d3b6752fa1]\n')
         testf_path = path.join(self.tmpdir, 'testf')
         old_prob_path = path.join(self.tmpdir, 'old.prob')
-        out, err = invoke_script([testf_path, '--verify=' + old_prob_path])
+        out, err = invoke_script([testf_path, '--reference=' + old_prob_path])
         self.assertEqual(err, '')
         expected_out = ('Missing files:\n'
                         '  old/file_two: '
