@@ -19,7 +19,8 @@ def file_sha1(file_path):
 def walk_item(base_path, current_path):
     item_path = path.join(base_path, current_path)
     if path.isfile(item_path):
-        return [events.FileEvent(current_path, file_sha1(item_path))]
+        return [events.FileEvent(base_path, current_path,
+                                 file_sha1(item_path))]
     elif path.isdir(item_path):
         return walk_folder(base_path, current_path)
     else:

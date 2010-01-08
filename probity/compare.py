@@ -16,7 +16,7 @@ def parse_file(input_lines):
         if file_match is not None:
             name = file_match.group('name')
             checksum = file_match.group('checksum')
-            yield events.FileEvent(current_path(), checksum)
+            yield events.FileEvent('', current_path(), checksum)
             continue
 
         begin_folder_match = begin_folder_pattern.match(line)
