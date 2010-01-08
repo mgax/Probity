@@ -1,12 +1,5 @@
 class BaseEvent(object):
-    _str = None
-    def __str__(self):
-        if self._str is None:
-            self._str = self._format()
-        return self._str
-
-    def _format(self):
-        raise NotImplementedError
+    pass
 
 class FileEvent(BaseEvent):
     folder = None
@@ -15,7 +8,7 @@ class FileEvent(BaseEvent):
         self.checksum = checksum
         self.name = path.split('/')[-1]
 
-    def _format(self):
+    def __str__(self):
         return '%s: %s\n' % (self.name, self.checksum)
 
 class FolderBeginEvent(BaseEvent):
@@ -25,7 +18,7 @@ class FolderBeginEvent(BaseEvent):
         self.path = path
         self.name = path.split('/')[-1]
 
-    def _format(self):
+    def __str__(self):
         return '[begin folder "%s"]\n' % self.name
 
 class FolderEndEvent(BaseEvent):
@@ -35,5 +28,5 @@ class FolderEndEvent(BaseEvent):
         self.checksum = checksum
         self.name = path.split('/')[-1]
 
-    def _format(self):
+    def __str__(self):
         return '[end folder "%s": %s]\n' % (self.name, self.checksum)
