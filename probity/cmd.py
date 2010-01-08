@@ -4,14 +4,18 @@ import optparse
 
 from probity import walk
 from probity import compare
+from probity import backup
 
 option_parser = optparse.OptionParser()
 option_parser.add_option("-q", "--quiet",
-                         action="store_true", dest="quiet", default=False,
-                         help="only print final checksum")
+    action="store_true", dest="quiet", default=False,
+    help="only print final checksum")
 option_parser.add_option("-r", "--reference",
-                         action="store", dest="reference_path",
-                         help="verify against previous report")
+    action="store", dest="reference_path", metavar="REFERENCE_FILE",
+    help="verify against previous report at REFERENCE_FILE")
+option_parser.add_option("-b", "--backup",
+    action="store", dest="backup_path", metavar="BACKUP_PATH",
+    help="back up files to BACKUP_PATH")
 
 def main():
     (options, args) = option_parser.parse_args()
@@ -22,6 +26,11 @@ def main():
     else:
         comparator = None
 
+    if options.backup_path is not None:
+        backup_pool = backup.Backup(options.backup_path)
+    else:
+        backup_pool = None
+
     for item in args:
         base_path, root_name = path.split(item)
         for evt in walk.walk_item(base_path, root_name):
@@ -29,6 +38,8 @@ def main():
                 sys.stdout.write(str(evt))
             if comparator is not None:
                 comparator.update(evt)
+            if backup_pool is not None:
+                backup_pool.store(evt)
 
         if options.quiet:
             root_checksum = evt.checksum

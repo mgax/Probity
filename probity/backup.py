@@ -8,7 +8,7 @@ class Backup(object):
     def __init__(self, pool_path):
         self.pool_path = pool_path
 
-    def store_event(self, evt):
+    def store(self, evt):
         if evt.folder is not None:
             return
 
