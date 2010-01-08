@@ -49,3 +49,18 @@ class BackupTest(unittest.TestCase):
                          [f3_sha[1]])
         with open(path.join(backup_path, f3_sha[0], f3_sha[1]), 'rb') as f:
             self.assertEqual(f.read(), 'file three')
+
+    def test_backup_skip_existing(self):
+        backup_path = path.join(self.tmpdir, 'backup')
+
+        f2_sha = 'e8', 'c3c333536348ba9c1822930ace36c506ef168d'
+        os.makedirs(path.join(backup_path, f2_sha[0]))
+        with open(path.join(backup_path, f2_sha[0], f2_sha[1]), 'wb') as f:
+            f.write('something else')
+
+        test_backup = backup.Backup(backup_path)
+        for evt in walk.walk_item(self.tmpdir, 'data'):
+            test_backup.store_event(evt)
+
+        with open(path.join(backup_path, f2_sha[0], f2_sha[1]), 'rb') as f:
+            self.assertEqual(f.read(), 'something else')
