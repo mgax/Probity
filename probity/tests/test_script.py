@@ -54,13 +54,13 @@ class InvokeScriptTestCase(unittest.TestCase):
                                      '143c5605a5d084ee165c\n')
 
     def test_checksum_folder(self):
-        out, err = invoke_script([path.join(self.tmpdir, 'testf')])
+        out, err = invoke_script([path.join(self.tmpdir, 'testf'), '-q'])
         self.assertEqual(err, '')
         self.assertEqual(out, 'testf: 47c14f38141d8fcb6e22'
                                           '09fbe990a7ddc102b2b2\n')
 
     def test_verbose(self):
-        out, err = invoke_script(['-v', path.join(self.tmpdir, 'testf')])
+        out, err = invoke_script([path.join(self.tmpdir, 'testf')])
         self.assertEqual(err, '')
         self.assertEqual(out,
                          ('[begin folder "testf"]\n'

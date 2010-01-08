@@ -6,9 +6,9 @@ from probity import walk
 from probity import compare
 
 option_parser = optparse.OptionParser()
-option_parser.add_option("-v", "--verbose",
-                         action="store_true", dest="verbose", default=False,
-                         help="print hashes for all nested folders and files")
+option_parser.add_option("-q", "--quiet",
+                         action="store_true", dest="quiet", default=False,
+                         help="only print final checksum")
 option_parser.add_option("-r", "--reference",
                          action="store", dest="reference_path",
                          help="verify against previous report")
@@ -25,12 +25,12 @@ def main():
     for item in args:
         base_path, root_name = path.split(item)
         for evt in walk.walk_item(base_path, root_name):
-            if options.verbose:
+            if not options.quiet:
                 sys.stdout.write(str(evt))
             if comparator is not None:
                 comparator.update(evt)
 
-        if not options.verbose:
+        if options.quiet:
             root_checksum = evt.checksum
             print '%s: %s' % (root_name, root_checksum)
 
