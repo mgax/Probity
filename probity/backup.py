@@ -30,3 +30,9 @@ class Backup(object):
                         else:
                             break
             os.rename(temp_path, blob_path)
+
+    def __contains__(self, checksum):
+        assert isinstance(checksum, str)
+        assert len(checksum) == 40
+        hash_path = path.join(self.pool_path, checksum[:2], checksum[2:])
+        return path.isfile(hash_path)

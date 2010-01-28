@@ -64,3 +64,14 @@ class BackupTest(unittest.TestCase):
 
         with open(path.join(backup_path, f2_sha[0], f2_sha[1]), 'rb') as f:
             self.assertEqual(f.read(), 'something else')
+
+    def test_backup_contains(self):
+        backup_path = path.join(self.tmpdir, 'backup')
+        test_backup = backup.Backup(backup_path)
+        for evt in walk.walk_item(self.tmpdir, 'data'):
+            test_backup.store(evt)
+
+        self.assertTrue('62a837970950bf34fb0c'
+                        '401c39cd3c0d373f0a7a' in test_backup)
+        self.assertTrue('62a837970950bf34fb0c'
+                        '00000000000000000000' not in test_backup)
