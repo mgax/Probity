@@ -16,6 +16,9 @@ option_parser.add_option("-r", "--reference",
 option_parser.add_option("-b", "--backup",
     action="store", dest="backup_path", metavar="BACKUP_PATH",
     help="back up files to BACKUP_PATH")
+option_parser.add_option("-i", "--interactive",
+    action="store_true", dest="interactive", default=False,
+    help="start a read-eval-print loop")
 
 def main():
     (options, args) = option_parser.parse_args()
@@ -30,6 +33,10 @@ def main():
         backup_pool = backup.Backup(options.backup_path)
     else:
         backup_pool = None
+
+    if options.interactive:
+        import code
+        return code.interact("Probity interactive session", local=locals())
 
     for item in args:
         base_path, root_name = path.split(item)
