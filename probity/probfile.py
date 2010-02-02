@@ -1,5 +1,6 @@
 import yaml
 import yaml.events
+import yaml.dumper
 
 from probity import events
 
@@ -45,3 +46,30 @@ def parse_yaml(stream):
         for key, value in reader:
             yield events.FileEvent('_yamlfile', key,
                                    value['sha1'], value['size'])
+
+class YamlDumper(object):
+    def __init__(self, stream):
+        self.dumper = yaml.dumper.Dumper(stream)
+
+    def __enter__(self):
+        self.dumper.open()
+        self.dumper.emit(yaml.events.DocumentStartEvent())
+        self.dumper.emit(yaml.events.MappingStartEvent(anchor=None, tag=None,
+                                                       implicit=True))
+        return self
+
+    def __exit__(self, exc_type, exc_value, exc_traceback):
+        if exc_type is not None:
+            return
+        self.dumper.emit(yaml.events.MappingEndEvent())
+        self.dumper.emit(yaml.events.DocumentEndEvent())
+        self.dumper.close()
+
+    def _write_data(self, data):
+        node = self.dumper.represent_data(data)
+        self.dumper.anchor_node(node)
+        self.dumper.serialize_node(node, None, None)
+
+    def write(self, evt):
+        self._write_data(evt.path)
+        self._write_data({'sha1': evt.checksum, 'size': evt.size})

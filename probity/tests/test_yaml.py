@@ -1,6 +1,9 @@
 import unittest
 from StringIO import StringIO
 
+import yaml
+
+from probity import events
 from probity import probfile
 
 testfile_yaml = """\
@@ -35,6 +38,26 @@ def test_parse_yaml():
     assert evt2.size == 14
 
     assert_raises(StopIteration, parser.next)
+
+def test_dump_yaml():
+    evt1 = events.FileEvent('', 'somefile',
+                            'da39a3ee5e6b4b0d3255bfef95601890afd80709', 0)
+    evt2 = events.FileEvent('', 'fol/otherfile',
+                            '6e28214b93900151eda8143c5605a5d084ee165c', 14)
+    reference_output = {
+        'somefile': {'sha1': 'da39a3ee5e6b4b0d3255bfef95601890afd80709',
+                     'size': 0},
+        'fol/otherfile': {'sha1': '6e28214b93900151eda8143c5605a5d084ee165c',
+                          'size': 14},
+    }
+
+    out_file = StringIO()
+    with probfile.YamlDumper(out_file) as dumper:
+        dumper.write(evt1)
+        dumper.write(evt2)
+
+    out_file.seek(0)
+    assert yaml.load(out_file) == reference_output
 
 def assert_raises(exc, callback):
     try:
