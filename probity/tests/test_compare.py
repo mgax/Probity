@@ -3,6 +3,7 @@ from StringIO import StringIO
 import itertools
 
 from probity import compare
+from probity import probfile
 
 left_file_data = """\
 [begin folder "root"]
@@ -52,18 +53,10 @@ shoe: 3441943cc58015d62942d3ff1abffc256a4eda72
 #   root/cellar/paper "white\n"
 #   root/cellar/apple "green\n"
 
-def parser_verifier(parser_factory, input_lines):
-    parser_input, input_copy = itertools.tee(input_lines)
-    for evt in parser_factory(parser_input):
-        orig = next(input_copy)
-        assert orig == str(evt), '%r != %r' % (orig, str(evt))
-        yield evt
-
 def read_to_dict(data, skip_folders=False):
     output = dict()
 
-    #for evt in compare.parse_file(StringIO(data)):
-    for evt in parser_verifier(compare.parse_file, StringIO(data)):
+    for evt in probfile.parse_file(StringIO(data)):
         if evt.folder == 'begin':
             continue
 
@@ -91,7 +84,7 @@ class CompareTest(unittest.TestCase):
         left = read_to_dict(left_file_data, skip_folders=True)
 
         comparator = compare.Comparator(left)
-        for evt in compare.parse_file(StringIO(right_file_data)):
+        for evt in probfile.parse_file(StringIO(right_file_data)):
             comparator.update(evt)
         report = comparator.report()
 

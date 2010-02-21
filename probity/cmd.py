@@ -87,7 +87,7 @@ def do_checksum(target_path, output=None,
 def read_checksum_file(file_path):
     data = dict()
     with open(file_path) as f:
-        for evt in compare.parse_file(f):
+        for evt in probfile.parse_file(f):
             if evt.folder is None:
                 data[evt.path] = evt.checksum
     return data
