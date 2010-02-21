@@ -100,3 +100,31 @@ class InvokeScriptTestCase(unittest.TestCase):
         with open(path.join(self.tmpdir, 'backup', '6e',
                   '28214b93900151eda8143c5605a5d084ee165c'), 'rb') as f:
             self.assertEqual(f.read(), 'hello probity!')
+
+class CompareTestCase(unittest.TestCase):
+    def setUp(self):
+        self.tmpdir = tempfile.mkdtemp()
+        with open(self.tmpdir + '/left.prob', 'wb') as f:
+            f.write('some_file_1: {size: 754368, sha1: '
+                            'a7e26aec552842dadf0345c6af7dbafd91eb4788}\n')
+            f.write('some_file_2: {size: 773093, sha1: '
+                            'c7c9598a4ea55eedf59c69b94683fa4ff3581bba}\n')
+        with open(self.tmpdir + '/right.prob', 'wb') as f:
+            f.write('some_file_3: {size: 754368, sha1: '
+                            'a7e26aec552842dadf0345c6af7dbafd91eb4788}\n')
+            f.write('some_file_4: {size: 2941132, sha1: '
+                            '945da7c5249f47ea5a4de6fe013c93908c53c10c}\n')
+
+    def tearDown(self):
+        shutil.rmtree(self.tmpdir)
+
+    def test_compare(self):
+        left_path = path.join(self.tmpdir, 'left.prob')
+        right_path = path.join(self.tmpdir, 'right.prob')
+        out, err = invoke_script(['compare', left_path, right_path])
+
+        assert err == ''
+        assert out == ('Removed files:\n'
+                       '  some_file_2\n'
+                       'Added files:\n'
+                       '  some_file_4\n')

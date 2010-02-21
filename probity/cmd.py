@@ -32,6 +32,11 @@ def parse_probity_args():
         action="store", dest="reference_path", metavar="REFERENCE_FILE",
         help="verify against previous report at REFERENCE_FILE")
 
+    compare_parser = subparsers.add_parser('compare',
+        help="Compare two probity reports")
+    compare_parser.add_argument("left", help="the 'original' report")
+    compare_parser.add_argument("right", help="the 'new' report")
+
     interact_parser = subparsers.add_parser('interact',
         help="start a read-eval-print loop")
 
@@ -59,6 +64,25 @@ def main():
             print 'Missing files:'
             for file_path in report['missing']:
                 print '  %s: %s' % (file_path, reference[file_path])
+
+    elif args.subcmd == 'compare':
+        reference = read_checksum_file(args.left)
+        comparator = compare.Comparator(reference)
+        with open(args.right, 'rb') as right_file:
+            for evt in probfile.parse_file(right_file):
+                comparator.update(evt)
+
+        report = comparator.report()
+
+        if report['missing']:
+            print 'Removed files:'
+            for file_path in report['missing']:
+                print '  %s' % (file_path)
+
+        if report['extra']:
+            print 'Added files:'
+            for file_path in report['extra']:
+                print '  %s' % (file_path)
 
     elif args.subcmd == 'interact':
         import code
