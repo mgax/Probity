@@ -5,6 +5,7 @@ import sys
 import os
 from os import path
 from StringIO import StringIO
+import yaml
 
 from probity import cmd
 
@@ -50,8 +51,11 @@ class InvokeScriptTestCase(unittest.TestCase):
         file_path = path.join(self.tmpdir, 'testf/sub1/sub2/file1')
         out, err = invoke_script(['checksum', file_path])
         self.assertEqual(err, '')
-        self.assertEqual(out, 'file1: 6e28214b93900151eda8'
-                                     '143c5605a5d084ee165c\n')
+        out_data = yaml.load(out)
+        self.assertEqual(out_data.keys(), ['file1'])
+        self.assertEqual(out_data['file1']['sha1'],
+                         '6e28214b93900151eda8143c5605a5d084ee165c')
+        self.assertEqual(out_data['file1']['size'], 14)
 
     def test_checksum_folder(self):
         out, err = invoke_script(['checksum', '-q',
@@ -63,17 +67,11 @@ class InvokeScriptTestCase(unittest.TestCase):
     def test_verbose(self):
         out, err = invoke_script(['checksum', path.join(self.tmpdir, 'testf')])
         self.assertEqual(err, '')
-        self.assertEqual(out,
-                         ('[begin folder "testf"]\n'
-                          '[begin folder "sub1"]\n'
-                          '[begin folder "sub2"]\n'
-                          'file1: 6e28214b93900151eda8143c5605a5d084ee165c\n'
-                          '[end folder "sub2": '
-                              '24c89cdebe9328b35a4afc43cdcbe5e38ab64c06]\n'
-                          '[end folder "sub1": '
-                              '55322dc65ff9ece08af84199b73000d3a9d80fa0]\n'
-                          '[end folder "testf": '
-                              '47c14f38141d8fcb6e2209fbe990a7ddc102b2b2]\n'))
+        out_data = yaml.load(out)
+        self.assertEqual(out_data.keys(), ['testf/sub1/sub2/file1'])
+        self.assertEqual(out_data['testf/sub1/sub2/file1']['sha1'],
+                         '6e28214b93900151eda8143c5605a5d084ee165c')
+        self.assertEqual(out_data['testf/sub1/sub2/file1']['size'], 14)
 
     def test_verify(self):
         with open(path.join(self.tmpdir, 'old.prob'), 'w') as f:

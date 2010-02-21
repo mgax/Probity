@@ -5,6 +5,7 @@ import argparse
 from probity import walk
 from probity import compare
 from probity import backup
+from probity import probfile
 
 def parse_probity_args():
     parser = argparse.ArgumentParser()
@@ -40,7 +41,11 @@ def main():
     args = parse_probity_args()
 
     if args.subcmd == 'checksum':
-        do_checksum(args.target, print_all=(not args.quiet))
+        if args.quiet:
+            do_checksum(args.target)
+        else:
+            with probfile.YamlDumper(sys.stdout) as output:
+                do_checksum(args.target, output=output)
 
     elif args.subcmd == 'backup':
         do_checksum(args.target, backup_pool=backup.Backup(args.backup_path))
@@ -62,18 +67,20 @@ def main():
     else:
         raise NotImplementedError
 
-def do_checksum(target_path, print_all=False,
+def do_checksum(target_path, output=None,
                 backup_pool=None, comparator=None):
     base_path, root_name = path.split(target_path)
     for evt in walk.walk_item(base_path, root_name):
-        if print_all:
-            sys.stdout.write(str(evt))
+        if evt.folder is not None:
+            continue
+        if output is not None:
+            output.write(evt)
         if comparator is not None:
             comparator.update(evt)
         if backup_pool is not None:
             backup_pool.store(evt)
 
-    if not print_all:
+    if output is None:
         root_checksum = evt.checksum
         print '%s: %s' % (root_name, root_checksum)
 

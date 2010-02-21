@@ -6,21 +6,23 @@ from probity import events
 
 BLOCK_SIZE = 65536
 
-def file_sha1(file_path):
+def file_sha1_and_size(file_path):
     sha1_hash = sha1()
+    size = 0
     with open(file_path, 'rb') as f:
         while True:
             data = f.read(BLOCK_SIZE)
             if not data:
                 break
             sha1_hash.update(data)
-    return sha1_hash.hexdigest()
+            size += len(data)
+    return sha1_hash.hexdigest(), size
 
 def walk_item(base_path, current_path):
     item_path = path.join(base_path, current_path)
     if path.isfile(item_path):
-        return [events.FileEvent(base_path, current_path,
-                                 file_sha1(item_path))]
+        checksum, size = file_sha1_and_size(item_path)
+        return [events.FileEvent(base_path, current_path, checksum, size)]
     elif path.isdir(item_path):
         return walk_folder(base_path, current_path)
     else:

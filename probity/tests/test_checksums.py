@@ -20,21 +20,21 @@ class ChecksumsTestCase(unittest.TestCase):
         # blank file
         with open(testfile_path, 'wb') as f:
             pass
-        self.assertEqual(walk.file_sha1(testfile_path),
-                         'da39a3ee5e6b4b0d3255bfef95601890afd80709')
+        self.assertEqual(walk.file_sha1_and_size(testfile_path),
+                         ('da39a3ee5e6b4b0d3255bfef95601890afd80709', 0))
 
         # short text
         with open(testfile_path, 'wb') as f:
             f.write('hello probity!')
-        self.assertEqual(walk.file_sha1(testfile_path),
-                         '6e28214b93900151eda8143c5605a5d084ee165c')
+        self.assertEqual(walk.file_sha1_and_size(testfile_path),
+                         ('6e28214b93900151eda8143c5605a5d084ee165c', 14))
 
         # 40KB text
         with open(testfile_path, 'wb') as f:
             for c in xrange(1000):
                 f.write('asdf' * 10)
-        self.assertEqual(walk.file_sha1(testfile_path),
-                         'b3c791bfc591d5c7514c135465a484e4a0a3ae85')
+        self.assertEqual(walk.file_sha1_and_size(testfile_path),
+                         ('b3c791bfc591d5c7514c135465a484e4a0a3ae85', 40000))
 
     def test_folder_sha1(self):
         os.mkdir(path.join(self.tmpdir, 'testf'))
