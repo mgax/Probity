@@ -9,7 +9,7 @@ setup(
     author="Alex Morega",
     author_email="public@grep.ro",
     packages=find_packages(),
-    install_requires=['PyYAML'],
+    install_requires=['PyYAML', 'argparse'],
     setup_requires=['nose>=0.11'],
     test_suite="nose.collector",
     entry_points={

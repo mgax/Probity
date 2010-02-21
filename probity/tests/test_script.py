@@ -43,8 +43,8 @@ class InvokeScriptTestCase(unittest.TestCase):
 
     def test_help(self):
         out, err = invoke_script(['-h'])
-        self.assertEqual(err, '')
-        self.assertTrue('Usage: probity' in out, (out,err))
+        self.assertTrue('usage: probity' in err, (out,err))
+        self.assertEqual(out, '')
 
     def test_checksum_file(self):
         file_path = path.join(self.tmpdir, 'testf/sub1/sub2/file1')
