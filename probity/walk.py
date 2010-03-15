@@ -41,3 +41,18 @@ def step_folder(base_path, current_path):
 
     checksum = sha1_hash.hexdigest()
     yield events.FolderEndEvent(current_path, checksum)
+
+def walk_path(target_path, handle_final=None):
+    """
+    Yields events for files in `target_path` (but not folders).
+    If `handle_final` is not None, it gets called with the event
+    for the root object (usually a foler) as single argument.
+    """
+    base_path, root_name = path.split(target_path)
+
+    for evt in step_item(base_path, root_name):
+        if evt.folder is None:
+            yield evt
+
+    if handle_final is not None:
+        handle_final(evt)

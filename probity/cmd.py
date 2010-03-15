@@ -47,19 +47,25 @@ def main():
 
     if args.subcmd == 'checksum':
         if args.quiet:
-            final_evt = do_checksum(args.target)
-            print '%s: %s' % (final_evt.name, final_evt.checksum)
+            def handle_final(evt):
+                print '%s: %s' % (evt.name, evt.checksum)
+            for evt in walk.walk_path(args.target, handle_final):
+                pass
         else:
             with probfile.YamlDumper(sys.stdout) as output:
-                do_checksum(args.target, output.write)
+                for evt in walk.walk_path(args.target):
+                    output.write(evt)
 
     elif args.subcmd == 'backup':
-        do_checksum(args.target, backup.Backup(args.backup_path).store)
+        backup_pool = backup.Backup(args.backup_path)
+        for evt in walk.walk_path(args.target):
+            backup_pool.store(evt)
 
     elif args.subcmd == 'verify':
         reference = read_checksum_file(args.reference_path)
         comparator = compare.Comparator(reference)
-        do_checksum(args.target, comparator.update)
+        for evt in walk.walk_path(args.target):
+            comparator.update(evt)
         report = comparator.report()
         if report['missing']:
             print 'Missing files:'
@@ -91,14 +97,6 @@ def main():
 
     else:
         raise NotImplementedError
-
-def do_checksum(target_path, *event_handlers):
-    base_path, root_name = path.split(target_path)
-    for evt in walk.step_item(base_path, root_name):
-        if evt.folder is None:
-            for handler in event_handlers:
-                handler(evt)
-    return evt # the final event, with checksum for the whole folder
 
 def read_checksum_file(file_path):
     data = dict()
