@@ -26,7 +26,7 @@ class BackupTest(unittest.TestCase):
         backup_path = path.join(self.tmpdir, 'backup')
 
         test_backup = backup.Backup(backup_path)
-        for evt in walk.walk_item(self.tmpdir, 'data'):
+        for evt in walk.step_item(self.tmpdir, 'data'):
             test_backup.store(evt)
 
         f1_sha = '62', 'a837970950bf34fb0c401c39cd3c0d373f0a7a'
@@ -59,7 +59,7 @@ class BackupTest(unittest.TestCase):
             f.write('something else')
 
         test_backup = backup.Backup(backup_path)
-        for evt in walk.walk_item(self.tmpdir, 'data'):
+        for evt in walk.step_item(self.tmpdir, 'data'):
             test_backup.store(evt)
 
         with open(path.join(backup_path, f2_sha[0], f2_sha[1]), 'rb') as f:
@@ -68,7 +68,7 @@ class BackupTest(unittest.TestCase):
     def test_backup_contains(self):
         backup_path = path.join(self.tmpdir, 'backup')
         test_backup = backup.Backup(backup_path)
-        for evt in walk.walk_item(self.tmpdir, 'data'):
+        for evt in walk.step_item(self.tmpdir, 'data'):
             test_backup.store(evt)
 
         self.assertTrue('62a837970950bf34fb0c'

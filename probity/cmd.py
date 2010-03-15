@@ -94,7 +94,7 @@ def main():
 
 def do_checksum(target_path, *event_handlers):
     base_path, root_name = path.split(target_path)
-    for evt in walk.walk_item(base_path, root_name):
+    for evt in walk.step_item(base_path, root_name):
         if evt.folder is None:
             for handler in event_handlers:
                 handler(evt)

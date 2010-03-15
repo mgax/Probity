@@ -49,7 +49,7 @@ class ChecksumsTestCase(unittest.TestCase):
                 f.write('asdf' * 10)
 
         out = StringIO()
-        for evt in walk.walk_folder(self.tmpdir, 'testf'):
+        for evt in walk.step_folder(self.tmpdir, 'testf'):
             out.write(evt)
         final_checksum = evt.checksum
         self.assertEqual(final_checksum,
@@ -70,7 +70,7 @@ class ChecksumsTestCase(unittest.TestCase):
             f.write('hello probity!')
 
         out = StringIO()
-        for evt in walk.walk_folder(self.tmpdir, 'testf'):
+        for evt in walk.step_folder(self.tmpdir, 'testf'):
             out.write(evt)
         final_checksum = evt.checksum
         self.assertEqual(final_checksum,

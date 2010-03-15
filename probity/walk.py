@@ -18,24 +18,24 @@ def file_sha1_and_size(file_path):
             size += len(data)
     return sha1_hash.hexdigest(), size
 
-def walk_item(base_path, current_path):
+def step_item(base_path, current_path):
     item_path = path.join(base_path, current_path)
     if path.isfile(item_path):
         checksum, size = file_sha1_and_size(item_path)
         return [events.FileEvent(base_path, current_path, checksum, size)]
     elif path.isdir(item_path):
-        return walk_folder(base_path, current_path)
+        return step_folder(base_path, current_path)
     else:
         raise NotImplementedError
 
-def walk_folder(base_path, current_path):
+def step_folder(base_path, current_path):
     folder_path = path.join(base_path, current_path)
     yield events.FolderBeginEvent(current_path)
 
     sha1_hash = sha1()
     for item_name in sorted(os.listdir(folder_path)):
         next_path = '%s/%s' % (current_path, item_name)
-        for evt in walk_item(base_path, next_path):
+        for evt in step_item(base_path, next_path):
             sha1_hash.update(str(evt))
             yield evt
 
