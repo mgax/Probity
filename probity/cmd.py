@@ -42,61 +42,61 @@ def parse_probity_args():
 
     return parser.parse_args()
 
-def main():
-    args = parse_probity_args()
+subcommands = {}
 
-    if args.subcmd == 'checksum':
-        if args.quiet:
-            def handle_final(evt):
-                print '%s: %s' % (evt.name, evt.checksum)
-            for evt in walk.walk_path(args.target, handle_final):
-                pass
-        else:
-            with probfile.YamlDumper(sys.stdout) as output:
-                for evt in walk.walk_path(args.target):
-                    output.write(evt)
-
-    elif args.subcmd == 'backup':
-        backup_pool = backup.Backup(args.backup_path)
-        for evt in walk.walk_path(args.target):
-            backup_pool.store(evt)
-
-    elif args.subcmd == 'verify':
-        reference = read_checksum_file(args.reference_path)
-        comparator = compare.Comparator(reference)
-        for evt in walk.walk_path(args.target):
-            comparator.update(evt)
-        report = comparator.report()
-        if report['missing']:
-            print 'Missing files:'
-            for file_path in report['missing']:
-                print '  %s: %s' % (file_path, reference[file_path])
-
-    elif args.subcmd == 'compare':
-        reference = read_checksum_file(args.left)
-        comparator = compare.Comparator(reference)
-        with open(args.right, 'rb') as right_file:
-            for evt in probfile.parse_file(right_file):
-                comparator.update(evt)
-
-        report = comparator.report()
-
-        if report['missing']:
-            print 'Removed files:'
-            for file_path in report['missing']:
-                print '  %s' % (file_path)
-
-        if report['extra']:
-            print 'Added files:'
-            for file_path in report['extra']:
-                print '  %s' % (file_path)
-
-    elif args.subcmd == 'interact':
-        import code
-        return code.interact("Probity interactive session", local=locals())
-
+def do_checksum(args):
+    if args.quiet:
+        def handle_final(evt):
+            print '%s: %s' % (evt.name, evt.checksum)
+        for evt in walk.walk_path(args.target, handle_final):
+            pass
     else:
-        raise NotImplementedError
+        with probfile.YamlDumper(sys.stdout) as output:
+            for evt in walk.walk_path(args.target):
+                output.write(evt)
+
+subcommands['checksum'] = do_checksum
+
+def do_backup(args):
+    backup_pool = backup.Backup(args.backup_path)
+    for evt in walk.walk_path(args.target):
+        backup_pool.store(evt)
+
+subcommands['backup'] = do_backup
+
+def do_verify(args):
+    reference = read_checksum_file(args.reference_path)
+    comparator = compare.Comparator(reference)
+    for evt in walk.walk_path(args.target):
+        comparator.update(evt)
+    report = comparator.report()
+    if report['missing']:
+        print 'Missing files:'
+        for file_path in report['missing']:
+            print '  %s: %s' % (file_path, reference[file_path])
+
+subcommands['verify'] = do_verify
+
+def do_compare(args):
+    reference = read_checksum_file(args.left)
+    comparator = compare.Comparator(reference)
+    with open(args.right, 'rb') as right_file:
+        for evt in probfile.parse_file(right_file):
+            comparator.update(evt)
+
+    report = comparator.report()
+
+    if report['missing']:
+        print 'Removed files:'
+        for file_path in report['missing']:
+            print '  %s' % (file_path)
+
+    if report['extra']:
+        print 'Added files:'
+        for file_path in report['extra']:
+            print '  %s' % (file_path)
+
+subcommands['compare'] = do_compare
 
 def read_checksum_file(file_path):
     data = dict()
@@ -105,3 +105,11 @@ def read_checksum_file(file_path):
             if evt.folder is None:
                 data[evt.path] = evt.checksum
     return data
+
+def main():
+    args = parse_probity_args()
+    sub = subcommands.get(args.subcmd, None)
+    if sub is None:
+        raise NotImplementedError
+    else:
+        sub(args)
