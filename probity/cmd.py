@@ -24,6 +24,9 @@ def parse_probity_args():
     backup_parser.add_argument("-b", "--backup",
         action="store", dest="backup_path", metavar="BACKUP_PATH",
         help="back up files to BACKUP_PATH")
+    backup_parser.add_argument("-v", "--verbose",
+        action="store_true", dest="verbose", default=False,
+        help="print checksums to stdout")
 
     verify_parser = subparsers.add_parser('verify',
         help="Verify the contents of a given folder against a report file")
@@ -59,8 +62,11 @@ subcommands['checksum'] = do_checksum
 
 def do_backup(args):
     backup_pool = backup.Backup(args.backup_path)
-    for evt in walk.walk_path(args.target):
-        backup_pool.store(evt)
+    with (probfile.YamlDumper(sys.stdout) if args.verbose else
+          DummyOutput()) as output:
+        for evt in walk.walk_path(args.target):
+            backup_pool.store(evt)
+            output.write(evt)
 
 subcommands['backup'] = do_backup
 
@@ -105,6 +111,12 @@ def read_checksum_file(file_path):
             if evt.folder is None:
                 data[evt.path] = evt.checksum
     return data
+
+class DummyOutput(object):
+    def __init__(self): pass
+    def __enter__(self): return self
+    def __exit__(self, exc_type, exc_value, exc_traceback): pass
+    def write(self, evt): pass
 
 def main():
     args = parse_probity_args()

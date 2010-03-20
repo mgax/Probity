@@ -44,8 +44,8 @@ class InvokeScriptTestCase(unittest.TestCase):
 
     def test_help(self):
         out, err = invoke_script(['-h'])
-        self.assertTrue('usage: probity' in err, (out,err))
-        self.assertEqual(out, '')
+        self.assertTrue('usage: probity' in out, (out,err))
+        self.assertEqual(err, '')
 
     def test_checksum_file(self):
         file_path = path.join(self.tmpdir, 'testf/sub1/sub2/file1')
@@ -95,6 +95,18 @@ class InvokeScriptTestCase(unittest.TestCase):
                                   '-b', path.join(self.tmpdir, 'backup')])
         self.assertEqual(err, '')
         self.assertEqual(out, '')
+        self.assertEqual(os.listdir(path.join(self.tmpdir, 'backup')), ['6e'])
+        with open(path.join(self.tmpdir, 'backup', '6e',
+                  '28214b93900151eda8143c5605a5d084ee165c'), 'rb') as f:
+            self.assertEqual(f.read(), 'hello probity!')
+
+    def test_backup_with_checksum(self):
+        out, err = invoke_script(['backup', path.join(self.tmpdir, 'testf'),
+                                  '-b', path.join(self.tmpdir, 'backup'),
+                                  '-v'])
+        self.assertEqual(err, '')
+        self.assertEqual(out, 'testf/sub1/sub2/file1: {sha1: '
+                '6e28214b93900151eda8143c5605a5d084ee165c, size: 14}\n')
         self.assertEqual(os.listdir(path.join(self.tmpdir, 'backup')), ['6e'])
         with open(path.join(self.tmpdir, 'backup', '6e',
                   '28214b93900151eda8143c5605a5d084ee165c'), 'rb') as f:
