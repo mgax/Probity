@@ -34,6 +34,13 @@ class Backup(object):
 
         os.rename(temp_path, blob_path)
 
+    def open_data(self, checksum):
+        # TODO: write tests for this method
+        bucket_path = path.join(self.pool_path, checksum[:2])
+        blob_path = path.join(bucket_path, checksum[2:])
+        assert path.isfile(blob_path)
+        return open(blob_path, 'rb')
+
     def __contains__(self, checksum):
         assert isinstance(checksum, str)
         assert len(checksum) == 40
