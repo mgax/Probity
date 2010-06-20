@@ -1,8 +1,29 @@
 import os
 from os import path
 import tempfile
+from hashlib import sha1
+from contextlib import contextmanager
 
 from probity.walk import BLOCK_SIZE
+
+class ChecksumWrapper(object):
+    def __init__(self, orig_file):
+        self.orig_file = orig_file
+        self.sha1_hash = sha1()
+
+    def write(self, data):
+        self.orig_file.write(data)
+        self.sha1_hash.update(data)
+
+    def close(self):
+        self.final_hash = self.sha1_hash.hexdigest()
+        del self.sha1_hash
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *exc_info):
+        self.close()
 
 class Backup(object):
     def __init__(self, pool_path):
@@ -12,11 +33,19 @@ class Backup(object):
         if evt.folder is not None:
             return
 
-        if evt.checksum not in self:
-            with open(evt.fs_path, 'rb') as src_file:
-                self.store_data(evt.checksum, src_file)
+        if evt.checksum in self:
+            return
 
-    def store_data(self, checksum, src_file):
+        with open(evt.fs_path, 'rb') as src_file:
+            with self.store_data(evt.checksum) as dst_file:
+                while True:
+                    data = src_file.read(BLOCK_SIZE)
+                    if not data:
+                        break
+                    dst_file.write(data)
+
+    @contextmanager
+    def store_data(self, checksum):
         bucket_path = path.join(self.pool_path, checksum[:2])
         blob_path = path.join(bucket_path, checksum[2:])
 
@@ -25,12 +54,9 @@ class Backup(object):
 
         temp_path = tempfile.mkstemp(dir=self.pool_path)[1]
         with open(temp_path, 'wb') as temp_file:
-            while True:
-                data = src_file.read(BLOCK_SIZE)
-                if not data:
-                    break
-
-                temp_file.write(data)
+            with ChecksumWrapper(temp_file) as wrapper:
+                yield wrapper
+            assert checksum == wrapper.final_hash
 
         os.rename(temp_path, blob_path)
 
