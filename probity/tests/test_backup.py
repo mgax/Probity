@@ -27,7 +27,7 @@ class BackupTest(unittest.TestCase):
 
         test_backup = backup.Backup(backup_path)
         for evt in walk.step_item(self.tmpdir, 'data'):
-            test_backup.store(evt)
+            test_backup.store_event(evt)
 
         f1_sha = '62', 'a837970950bf34fb0c401c39cd3c0d373f0a7a'
         f2_sha = 'e8', 'c3c333536348ba9c1822930ace36c506ef168d'
@@ -60,7 +60,7 @@ class BackupTest(unittest.TestCase):
 
         test_backup = backup.Backup(backup_path)
         for evt in walk.step_item(self.tmpdir, 'data'):
-            test_backup.store(evt)
+            test_backup.store_event(evt)
 
         with open(path.join(backup_path, f2_sha[0], f2_sha[1]), 'rb') as f:
             self.assertEqual(f.read(), 'something else')
@@ -69,7 +69,7 @@ class BackupTest(unittest.TestCase):
         backup_path = path.join(self.tmpdir, 'backup')
         test_backup = backup.Backup(backup_path)
         for evt in walk.step_item(self.tmpdir, 'data'):
-            test_backup.store(evt)
+            test_backup.store_event(evt)
 
         self.assertTrue('62a837970950bf34fb0c'
                         '401c39cd3c0d373f0a7a' in test_backup)

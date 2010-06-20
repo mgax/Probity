@@ -8,28 +8,31 @@ class Backup(object):
     def __init__(self, pool_path):
         self.pool_path = pool_path
 
-    def store(self, evt):
+    def store_event(self, evt):
         if evt.folder is not None:
             return
 
-        bucket_path = path.join(self.pool_path, evt.checksum[:2])
-        blob_path = path.join(bucket_path, evt.checksum[2:])
+        if evt.checksum not in self:
+            with open(evt.fs_path, 'rb') as src_file:
+                self.store_data(evt.checksum, src_file)
+
+    def store_data(self, checksum, src_file):
+        bucket_path = path.join(self.pool_path, checksum[:2])
+        blob_path = path.join(bucket_path, checksum[2:])
 
         if not path.isdir(bucket_path):
             os.makedirs(bucket_path)
 
-        if not path.isfile(blob_path):
-            # TODO: use temporary file!
-            temp_path = tempfile.mkstemp(dir=self.pool_path)[1]
-            with open(temp_path, 'wb') as temp_file:
-                with open(evt.fs_path, 'rb') as src_file:
-                    while True:
-                        data = src_file.read(BLOCK_SIZE)
-                        if data:
-                            temp_file.write(data)
-                        else:
-                            break
-            os.rename(temp_path, blob_path)
+        temp_path = tempfile.mkstemp(dir=self.pool_path)[1]
+        with open(temp_path, 'wb') as temp_file:
+            while True:
+                data = src_file.read(BLOCK_SIZE)
+                if not data:
+                    break
+
+                temp_file.write(data)
+
+        os.rename(temp_path, blob_path)
 
     def __contains__(self, checksum):
         assert isinstance(checksum, str)

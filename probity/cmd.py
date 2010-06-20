@@ -65,7 +65,7 @@ def do_backup(args):
     with (probfile.YamlDumper(sys.stdout) if args.verbose else
           DummyOutput()) as output:
         for evt in walk.walk_path(args.target):
-            backup_pool.store(evt)
+            backup_pool.store_event(evt)
             output.write(evt)
 
 subcommands['backup'] = do_backup
