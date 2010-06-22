@@ -52,8 +52,8 @@ class Backup(object):
         if not path.isdir(bucket_path):
             os.makedirs(bucket_path)
 
-        temp_path = tempfile.mkstemp(dir=self.pool_path)[1]
-        with open(temp_path, 'wb') as temp_file:
+        fd, temp_path = tempfile.mkstemp(dir=self.pool_path)
+        with os.fdopen(fd, 'wb') as temp_file:
             with ChecksumWrapper(temp_file) as wrapper:
                 yield wrapper
             assert checksum == wrapper.final_hash
